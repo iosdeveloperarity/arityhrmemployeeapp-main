@@ -81,6 +81,7 @@ class _SettingPageState extends State<SettingPage> {
               child: Container(
                 // height: height,
                 // width: width,
+
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [

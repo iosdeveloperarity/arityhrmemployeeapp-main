@@ -911,11 +911,27 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   }
 
   void saveProfile(){
-    print(Constant.selectedDate);
-    print(getstate);
 
-    ApiInterface().saveProfile(Constant.employee_id, fname.text, mname.text, lname.text, Constant.selectedDate, father_name.text, isgender, _chosenValue, cast.text, photo, _getcountry, getstate, city.text, address.text,
+    ApiInterface().saveProfile(Constant.employee_id, fname.text, mname.text, lname.text, Constant.selectedDate.toIso8601String(), father_name.text, isgender, _chosenValue, cast.text, photo, _getcountry, getstate, city.text, address.text,
         pincode.text, mobile.text, phone.text).then((value){
+          print(Constant.employee_id);
+          print(fname.text);
+          print(mname.text);
+          print(lname.text);
+          print(Constant.selectedDate.toIso8601String());
+          print(father_name.text);
+          print(isgender);
+          print(_chosenValue);
+          print(cast.text);
+          print(photo);
+          print(_getcountry);
+          print(getstate);
+          print(city.text);
+          print(address.text);
+          print(pincode.text);
+          print(mobile.text);
+          print(phone.text);
+
           if(value!=null){
             if(value.isSuccess==true){
               _saveprofileList.add(value);

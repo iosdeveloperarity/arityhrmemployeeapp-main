@@ -76,34 +76,6 @@ class ApiInterface{
     }
   }
 
-  // Future<ForgotPassword> forgotpassword(String username) async {
-  //   print(username);
-  //   String url = baseUrl + "UserLogin";
-  //   Map data ={
-  //     "Username":username,
-  //   };
-  //   var body=json.encode(data);
-  //   FormData form = FormData.fromMap({"Username": username});
-  //
-  //   try {
-  //     Response response = await _dio.post(url, data: data,options: Options(
-  //
-  //         headers: {'Content-Type': 'application/json','X-AUTH-TOKEN': Constant.auth_token}
-  //     ));
-  //     if (response.statusCode == 200) {
-  //       print("Enter");
-  //
-  //
-  //       print("Response : " + response.toString());
-  //
-  //       return ForgotPassword.fromJson(response.data);
-  //     } else
-  //       return null;
-  //   } catch (error, stacktrace) {
-  //     print("Exception occured: $error stackTrace: $stacktrace");
-  //     return null;
-  //   }
-  // }
 
   Future<Leave> getLeaves(String empid) async {
     print(empid);
@@ -222,7 +194,7 @@ class ApiInterface{
     }
   }
 
-  Future<SaveProfile> saveProfile(String empid,String firstName,String middleName,String lastName,DateTime birth,
+  Future<SaveProfile> saveProfile(String empid,String firstName,String middleName,String lastName,String birth,
       String fatherName,bool isGender,String maratialStatus,String cast,String photoName, var countryId, var stateId, String city,
       String address,String pincode,String mobileno,String phoneno) async {
     // _dio.options.contentType = 'application/json';

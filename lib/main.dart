@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:hrm_app/page/attendancepage.dart';
@@ -11,7 +12,10 @@ import 'package:hrm_app/utility/firebase_push_notification.dart';
 import 'package:hrm_app/values/imageAssets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(MyApp());
 }
 
@@ -75,8 +79,7 @@ class _HomePageState extends State<HomePage> {
       Constant.employee_id=stringValue;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-            builder: (context) => DashboardPage()),
+        MaterialPageRoute(builder: (context) => DashboardPage()),
       );
     }
     else{

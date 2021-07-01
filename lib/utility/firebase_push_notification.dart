@@ -6,6 +6,7 @@ class PushNotificationService {
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
   Future initialise() async {
+    fcmSubscribe();
     var initializationSettingsAndroid =
     new AndroidInitializationSettings('@drawable/logo');
     var initializationSettingsIOS = new IOSInitializationSettings();
@@ -17,6 +18,7 @@ class PushNotificationService {
     String token = await FirebaseMessaging.instance.getToken();
     print("FirebaseMessaging token: $token");
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print(message.notification.title);
       RemoteNotification notification = message.notification;
       AndroidNotification android = message.notification?.android;
       if(notification!=null && android!=null){
@@ -45,4 +47,9 @@ class PushNotificationService {
     await flutterLocalNotificationsPlugin
         .show(0, title, body, platformChannelSpecifics, payload: 'test');
   }
+
+  void fcmSubscribe() {
+    FirebaseMessaging.instance.subscribeToTopic('HRM');
+  }
+
 }

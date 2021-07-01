@@ -474,10 +474,7 @@ class _HomePageState extends State<HomePage> {
     if(lastPressString!=null){
       Constant.changePuch=true;
     }
-    print("Last Stored Value"+lastPressString);
-    print(DateTime.now());
     _lastButtonPress = lastPressString!=null ? DateTime.parse(lastPressString) : DateTime.now();
-    print("Last time after parsing"+_lastButtonPress.toString());
     _updateTimer();
     _ticker = Timer.periodic(Duration(seconds:1),(_)=>_updateTimer());
 
