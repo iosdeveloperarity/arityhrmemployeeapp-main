@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "779829833572",
+    "project_id": "hrm-app-a0d48",
+    "storage_bucket": "hrm-app-a0d48.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:779829833572:android:5e0fa287319e194fb4d471",
+        "android_client_info": {
+          "package_name": "com.arityinfoway.hrm_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "779829833572-lo97eoaif4soj4om84aj6ldpf3n4dhda.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.arityinfoway.hrm_app",
+            "certificate_hash": "187290ac166ae694ced1be1a43891d7e3d1efe5a"
+          }
+        },
+        {
+          "client_id": "779829833572-k4icf0kkd1qcp1buacrurlihjv58g7fo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDhAgX2ycaGkbQxSFMM6ZukRWWWmbwEJZQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "779829833572-k4icf0kkd1qcp1buacrurlihjv58g7fo.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
