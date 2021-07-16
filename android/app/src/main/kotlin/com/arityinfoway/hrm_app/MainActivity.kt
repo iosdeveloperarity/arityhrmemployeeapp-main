@@ -1,4 +1,4 @@
-package com.arityinfoway.hrm_app
+package com.arity.hrm_app
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine

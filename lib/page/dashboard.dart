@@ -26,6 +26,7 @@ class _DashboardPageState extends State<DashboardPage> {
     width=MediaQuery.of(context).size.width;
     return Scaffold(
           key: _scaffoldKey,
+          resizeToAvoidBottomInset: false,
           appBar: AppBar(
             centerTitle: true,
             elevation: 0.0,

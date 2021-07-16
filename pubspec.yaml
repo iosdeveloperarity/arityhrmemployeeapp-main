@@ -46,6 +46,12 @@ dependencies:
   flutter_launcher_icons: any
   local_auth: any
   firebase_core : any
+  firebase_auth: ^2.0.0
+  network_info_plus: ^1.0.2
+  connectivity_plus: ^1.0.4
+  device_info_plus: ^2.1.0
+  workmanager: ^0.4.1
+  flutter_isolate: ^2.0.0
 
 dev_dependencies:
   flutter_test:

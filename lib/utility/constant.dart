@@ -31,6 +31,10 @@ class Constant{
 
   static bool appbarvisibility=false;
 
+  static String test_publish_key="prj_test_pk_608da7782c1e81caa94e9f9651a816900cbc74fb";
+  static String live_secret_key="prj_live_sk_8457275c5860b0f9c653a8a2da27abf6c3151817";
+  static String live_publish_key="prj_live_pk_33f09e854f9480519fefe7b1cd703a4e7575d323";
+
 
 
 }

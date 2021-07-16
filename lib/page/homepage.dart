@@ -1,8 +1,8 @@
 import 'dart:async';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_isolate/flutter_isolate.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
@@ -17,13 +17,28 @@ import 'package:intl/intl.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geocoder/geocoder.dart';
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+import 'package:geolocator/geolocator.dart'as geo;
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:hrm_app/utility/constant.dart';
+import 'package:network_info_plus/network_info_plus.dart';
+import 'package:workmanager/workmanager.dart';
 
 class HomePage extends StatefulWidget {
+
   @override
-  _HomePageState createState() => _HomePageState();
+  HomePageState createState() => HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class HomePageState extends State<HomePage>{
   var height;
   var width;
   final _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -43,17 +58,46 @@ class _HomePageState extends State<HomePage> {
   var lastPressString;
   DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
   final LocalAuthentication localAuth = LocalAuthentication();
+  static const baseUrl = "https://api.radar.io/v1/";
+  final Dio _dio = Dio();
+  String device_Id;
+  int user_id=1;
+  Future<geo.Position> position;
+  String lat,lang;
+  String user_event;
+  String wifiName, wifiBSSID, wifiIP;
+  final NetworkInfo _networkInfo = NetworkInfo();
+  ConnectivityResult _connectionStatus = ConnectivityResult.none;
+  final Connectivity _connectivity = Connectivity();
+  StreamSubscription<ConnectivityResult> _connectivitySubscription;
+  bool isavailable;
+  String connectionStatus = 'Unknown';
+  String choosen_latlong="";
+  String punchtype="";
+
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+
     init();
     employeeid="4064ad14-6e50-41f3-9eef-ff667707ec7c";
     Constant.appbarTitle = "Clock in time";
     print("true");
-    _getUserLocation();
+    getDeviceDetails();
+    initConnectivity();
+    _connectivitySubscription =
+        _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
 
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _ticker.cancel();
+    _connectivitySubscription.cancel();
   }
 
   @override
@@ -267,7 +311,6 @@ class _HomePageState extends State<HomePage> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment
                                     .spaceBetween,
-
                                 children: [
                                   Expanded(
                                     child: Padding(
@@ -336,7 +379,8 @@ class _HomePageState extends State<HomePage> {
                                 onTap: () {
                                 if (Constant.date.text != "" &&
                                   Constant.time.text != "") {
-                                  _authorize("IN");
+                                  punchtype="IN";
+                                  getGeoPosition();
                                 }
                                 else{
                                   Fluttertoast.showToast(msg: "Please Select Today's Date");
@@ -401,7 +445,6 @@ class _HomePageState extends State<HomePage> {
         coordinates);
     var first = addresses.first;
     location=first.addressLine;
-    print(location);
   }
 
   _onAddMarkerAdd() {
@@ -418,14 +461,10 @@ class _HomePageState extends State<HomePage> {
     _controller.complete(controller);
   }
 
-
-
-
   Future<Null> _selectDate(BuildContext context) async {
     var one,two;
     final DateTime picked = await showDatePicker(
         context: context,
-
         initialDate: Constant.selectedDate,
         firstDate: DateTime(1901, 1),
         lastDate: DateTime(2100));
@@ -435,11 +474,14 @@ class _HomePageState extends State<HomePage> {
         Constant.selectedDate = picked;
         String formatted=formatter.format(Constant.selectedDate);
         print("formatted"+formatted.toString());
+
         if(formatted==formatter.format(DateTime.now())){
+          Constant.date.value = TextEditingValue(text: formatted.toString());
+          Constant.time.text=(DateFormat.jm().format(DateTime.now()));
           if(Constant.istimerstarted==true){
             Constant.istimerstarted=false;
-            Constant.date.value = TextEditingValue(text: formatted.toString());
-            Constant.time.text=(DateFormat.jm().format(DateTime.now()));
+            // Constant.date.value = TextEditingValue(text: formatted.toString());
+            // Constant.time.text=(DateFormat.jm().format(DateTime.now()));
             Constant.date2.value = TextEditingValue(text: formatted.toString());
             Constant.time2.text=(DateFormat.jm().format(DateTime.now()));
             attendancedate=Constant.date.text+" "+DateFormat.Hm().format(DateTime.now());
@@ -459,26 +501,77 @@ class _HomePageState extends State<HomePage> {
 
   void getPunchInOut(String longitude, String latitude, String locationname, String employeeID,String attendancedate,String punchmethod, String enrollno,String punchtype){
     print("Enter");
+    print(longitude);
+    print(latitiude);
+    print(locationname);
+    print(employeeID);
+    print(attendancedate);
+    print(punchmethod);
+    print(enrollno);
     ApiInterface().puchINOUT(longitude, latitude, locationname, employeeID, attendancedate, punchmethod, enrollno).then((value){
       if(value!=null){
         if(value.isSuccess){
-          Fluttertoast.showToast(msg: "Successfully"+punchtype);
+          if(punchtype=="Punch In"){
+            if(mounted){
+              setState(() {
+                Fluttertoast.showToast(msg: "Successfully"+punchtype);
+                Constant.time.clear();
+                Constant.date.clear();
+                Constant.manualIn=DateTime.now();
+                Constant.changePuch=true;
+                Constant.appbarTitle = "Clock In Time";
+                _lastButtonPress = DateTime.now();
+                attendancedate=Constant.date2.text+" "+Constant.time2.text;
+                print("current_time"+_lastButtonPress.toString());
+                sharedPreferences.setString("lastButtonPress",_lastButtonPress.toString());
+                lastPressString = _lastButtonPress.toString();
+                if(lastPressString!=null){
+                  Constant.changePuch=true;
+                  _lastButtonPress = lastPressString!=null ? DateTime.parse(lastPressString) : DateTime.now();
+                  _ticker = Timer.periodic(Duration(seconds:1),(_)=>_updateTimer());
+                }
+              });
+            }
+
+          }
+          else{
+            if(mounted){
+              setState(() {
+                Fluttertoast.showToast(msg: "Successfully"+punchtype);
+                Constant.date2.clear();
+                Constant.time2.clear();
+                Constant.changePuch=false;
+                sharedPreferences.remove("lastButtonPress");
+                lastPressString=null;
+                _updateTimer();
+                Constant.appbarTitle = "Clock Out Time";
+                Constant.manualOut=DateTime.now();
+                _ticker.cancel();
+              });
+            }
+
+          }
+
         }
       }
     });
   }
 
   Future<void> init() async {
+    _getUserLocation();
     sharedPreferences = await SharedPreferences.getInstance();
     lastPressString = sharedPreferences.getString("lastButtonPress");
+    print(lastPressString);
     if(lastPressString!=null){
       Constant.changePuch=true;
+      _lastButtonPress = lastPressString!=null ? DateTime.parse(lastPressString) : DateTime.now();
+      _ticker = Timer.periodic(Duration(seconds:1),(_)=>_updateTimer());
     }
-    _lastButtonPress = lastPressString!=null ? DateTime.parse(lastPressString) : DateTime.now();
-    _updateTimer();
-    _ticker = Timer.periodic(Duration(seconds:1),(_)=>_updateTimer());
-
+    setState(() {});
   }
+
+
+
 
   void _updateTimer() {
     final duration = DateTime.now().difference(_lastButtonPress);
@@ -516,45 +609,187 @@ class _HomePageState extends State<HomePage> {
     if (!mounted) return;
     setState(() {
       if (_isAuthorized && punchtype=="IN") {
-          Constant.time.clear();
-          Constant.date.clear();
-          Constant.punchmethod="IN = 1";
-          Constant.manualIn=DateTime.now();
-          init();
-          getPunchInOut(longitude, latitiude, location, employeeid, attendancedate, Constant.punchmethod, enrollno, "Punch In");
-          setState(() {
-            Constant.changePuch=true;
-            Constant.appbarTitle = "Clock In Time";
-          });
-          _lastButtonPress = DateTime.now();
-          print("current_time"+_lastButtonPress.toString());
-          sharedPreferences.setString("lastButtonPress",_lastButtonPress.toString());
-        }
-        else if(_isAuthorized && punchtype=="OUT"){
-        Constant.date2.clear();
-        Constant.time2.clear();
-        Constant.changePuch=false;
-        sharedPreferences.clear();
-        setState(() {
-          Constant.appbarTitle = "Clock Out Time";
-        });
+        Constant.punchmethod="IN = 1";
+        attendancedate=Constant.date.text+" "+DateFormat.Hm().format(DateTime.now());
+        getPunchInOut(longitude, latitiude, location, employeeid, attendancedate, Constant.punchmethod, enrollno, "Punch In");
+
+      }
+      else if(_isAuthorized && punchtype=="OUT"){
         Constant.punchmethod="OUT = 1";
-        Constant.manualOut=DateTime.now();
-        _ticker.cancel();
+        attendancedate=Constant.date.text+" "+DateFormat.Hm().format(DateTime.now());
         getPunchInOut(longitude, latitiude, location, employeeid, attendancedate, Constant.punchmethod, enrollno, "Punch Out");
       }
-        else {
-          Fluttertoast.showToast(
-              msg: "Authentication Failed");
-        }
+      else {
+        Fluttertoast.showToast(
+            msg: "Authentication Failed");
       }
+    }
     );
   }
 
 
+  Future<void> createGeofence() async {
+    String url = baseUrl + "geofences/venue/2";
+    Map data ={
+      "description": "Arity Infoway",
+      "type": "circle",
+      "coordinates": "[22.285641245138915,70.75633641762559]",
+      "radius": "15"
+    };
+    var body=json.encode(data);
+    try {
+      Response response = await _dio.put(url, data: body,options: Options(
+
+          headers: {'Content-Type': 'application/json','Authorization': Constant.live_secret_key}
+      ));
+      if (response.statusCode == 200) {
+        print("Enter");
+
+        print("Response : " + response.toString());
+
+        if(lat!=null && lang!=null){
+          createUser();
+        }
+      } else{
+        Fluttertoast.showToast(msg: response.statusMessage);
+      }
+    } catch (error, stacktrace) {
+      Fluttertoast.showToast(msg: "Something went wrong please try later");
+      print("Exception occured: $error stackTrace: $stacktrace");
+      return null;
+    }
+  }
+
+  Future<void> createUser() async {
+    print(lat);
+    print(lang);
+    print(user_id);
+    print(device_Id);
+    String url = baseUrl + "track";
+    Map data ={
+      "userId": user_id.toString(),
+      "latitude":lang,
+      "longitude":lat,
+      "accuracy":"20",
+      "deviceId": device_Id
+    };
+    var body=json.encode(data);
+    try {
+      Response response = await _dio.post(url, data: body,options: Options(
+
+          headers: {'Content-Type': 'application/json','Authorization': Constant.live_secret_key}
+      ));
+      if (response.statusCode == 200) {
+        print("Enter");
+        print("Response : " + response.toString());
+        // print(response.data['events'][0]['type']);
+        if(response.data['events'].isNotEmpty){
+          user_event=response.data['events'][0]['type'];
+          if(user_event=="user.entered_geofence")
+          {
+            initConnectivity();
+            Fluttertoast.showToast(msg: "You have Entered Arity's Geofence");
+
+          }
+          else{
+            Fluttertoast.showToast(msg: "You will not able to sign in you are out of geofence");
+          }
+        }
+        else{
+          initConnectivity();
+        }
+
+      } else{
+
+      }
+    } catch (error, stacktrace) {
+      print("Exception occured: $error stackTrace: $stacktrace");
+      return null;
+    }
+  }
+
+  Future<void> getDeviceDetails() async {
+    String deviceName;
+    String deviceVersion;
+    String identifier;
+    final DeviceInfoPlugin deviceInfoPlugin = new DeviceInfoPlugin();
+    try {
+      if (Platform.isAndroid) {
+        var build = await deviceInfoPlugin.androidInfo;
+        deviceName = build.model;
+        deviceVersion = build.version.toString();
+        device_Id = build.androidId;
+      } else if (Platform.isIOS) {
+        var data = await deviceInfoPlugin.iosInfo;
+        deviceName = data.name;
+        deviceVersion = data.systemVersion;
+        identifier = data.identifierForVendor; //UUID for iOS
+      }
+    } on PlatformException {
+      print('Failed to get platform version');
+    }
+  }
+
+  getGeoPosition() async {
+    print("enter");
+    geo.Position position = await geo.Geolocator.getCurrentPosition(desiredAccuracy: geo.LocationAccuracy.high);
+    print(position);
+    lang=position.longitude.toString();
+    lat=position.latitude.toString();
+    print(lat);
+    print(lang);
+    if(lat!=null){
+      createGeofence();
+    }
+  }
 
 
+  Future<void> initConnectivity() async {
+    ConnectivityResult result;
+    try {
+      result = await _connectivity.checkConnectivity();
+    } on PlatformException catch (e) {
+      print(e.toString());
+      return;
+    }
+    if (!mounted) {
+      return Future.value(null);
+    }
+
+    return _updateConnectionStatus(result);
+  }
 
 
+  Future<void> _updateConnectionStatus(ConnectivityResult result) async {
+    _connectionStatus=result;
+    print(_connectionStatus);
+    wifiName = await _networkInfo.getWifiName();
+    setState(() {
+      if(_connectionStatus==ConnectivityResult.wifi){
+        print("Enter wifi");
+        if(wifiName=="DESKTOP-2EAS0E1 6768"){
+          print("Enter wifi true");
+          if(punchtype=="IN"){
+            _authorize("IN");
+          }
+        }
+        else{
+          sharedPreferences.remove("lastButtonPress");
+          lastPressString=null;
+        }
+      }
+      else{
+        sharedPreferences.remove("lastButtonPress");
+        lastPressString=null;
+        print("Enter nothing");
+      }
+    });
+  }
+
+  Future<bool> authenticateIsAvailable() async {
+    final isAvailable = await localAuth.canCheckBiometrics;
+    final isDeviceSupported = await localAuth.isDeviceSupported();
+    return isAvailable && isDeviceSupported;
+  }
 
 }

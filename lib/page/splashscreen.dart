@@ -27,6 +27,7 @@ class _SplashScreenState extends State<SplashScreen> {
     height=MediaQuery.of(context).size.height;
     width=MediaQuery.of(context).size.width;
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Container(
         height: height,
         width: width,

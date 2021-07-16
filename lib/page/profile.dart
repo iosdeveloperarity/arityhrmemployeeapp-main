@@ -267,6 +267,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                             GestureDetector(
                               onTap: () {
                                 _selectDate(context);
+
                               },
                               child: AbsorbPointer(
                                 child: Container(
@@ -518,10 +519,13 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                                     value: _getcountry,
                                     items:  _countrylist.map((item){
                                       return new DropdownMenuItem(
-                                          child: new Text(item.text,style: TextStyle(
-                                            fontFamily: 'Roboto',
-                                            fontSize: 16,
-                                          ),),
+                                          child: Container(
+                                            width: 120,
+                                            child: new Text(item.text,style: TextStyle(
+                                              fontFamily: 'Roboto',
+                                              fontSize: 16,
+                                            ),),
+                                          ),
                                         value: item.id,
                                       );
                                     }).toList(),
