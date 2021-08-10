@@ -19,26 +19,40 @@ class _SettingPageState extends State<SettingPage> {
   var height;
   var width;
   String clocktime='';
-  DateTime _currentDate = DateTime(2019, 2, 3);
+  DateTime _currentDate = DateTime.now();
   DateTime manualin,manualout;
   var diffone, difftwo;
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   SharedPreferences sharedPreferences;
   String in_stored,out_stored;
+  bool getTimekey;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    if(Constant.manualIn!=null){
-      manualin = new DateFormat.Hm().parse(Constant.manualIn);
-      manualout = new DateFormat.Hm().parse(Constant.manualOut);
-      diffone = manualout.difference(manualin).inHours;
-      difftwo = manualout.difference(manualin).inMinutes;
-      print(diffone);
-      print(difftwo);
+    init();
+    if(getTimekey!=null){
+      if(Constant.manualIn!=null){
+        manualin = new DateFormat.Hm().parse(Constant.manualIn);
+        manualout = new DateFormat.Hm().parse(Constant.manualOut);
+        diffone = manualout.difference(manualin).inHours;
+        difftwo = manualout.difference(manualin).inMinutes;
+        print(diffone);
+        print(difftwo);
+      }
+      else{
+        Constant.manualIn="00:00";
+        Constant.manualOut="00:00";
+      }
     }
 
+
+  }
+
+  init() async {
+    sharedPreferences=await SharedPreferences.getInstance();
+    getTimekey=sharedPreferences.getBool("time");
   }
 
   @override

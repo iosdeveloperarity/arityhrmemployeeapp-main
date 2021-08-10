@@ -307,6 +307,9 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                 ),
               ),
             ),
+            Container(
+                margin: EdgeInsets.only(left: 30),
+                child: Text("App Version: 1.0.0",style: TextStyle(fontSize: 15,fontFamily: 'Roboto',color: Colors.blue),)),
           ],
         ),
       ),

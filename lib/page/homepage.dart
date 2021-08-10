@@ -30,7 +30,6 @@ import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hrm_app/utility/constant.dart';
 import 'package:network_info_plus/network_info_plus.dart';
-import 'package:workmanager/workmanager.dart';
 
 class HomePage extends StatefulWidget {
 
@@ -689,7 +688,6 @@ class HomePageState extends State<HomePage>{
           {
             initConnectivity();
             Fluttertoast.showToast(msg: "You have Entered Arity's Geofence");
-
           }
           else{
             Fluttertoast.showToast(msg: "You will not able to sign in you are out of geofence");
